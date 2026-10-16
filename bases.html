@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuevas Miradas — Teilnahmebedingungen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;600&family=Oswald:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html"><span class="wordmark">LAFITA</span><span class="tag" data-i18n="tag"></span></a>
+    <div class="header-right">
+      <div class="lang-switch"></div>
+      <div class="header-dates"><span data-i18n="header_month"></span><small data-i18n="header_sub"></small></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <a class="back-link" href="index.html#form" data-i18n="back_form"></a>
+  <article class="rules" id="rules"></article>
+  <p class="hint contact" data-i18n="contact_line"></p>
+  <p><a class="btn" href="index.html#form" data-i18n="hero_cta"></a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">
+    <span data-i18n="footer_name"></span>
+    <span><a href="https://lafita.de">lafita.de</a></span>
+  </div>
+</footer>
+
+<script src="config.js"></script>
+<script src="i18n.js"></script>
+<script>
+  const puntos = Array.from({ length: 12 }, (_, i) =>
+    `<h2 data-i18n="r${i + 1}_h"></h2><p data-i18n="r${i + 1}"></p>`).join('');
+  document.getElementById('rules').innerHTML =
+    `<h1 data-i18n="rules_title"></h1><p class="sub" data-i18n="rules_sub"></p>${puntos}`;
+  document.querySelectorAll('.contact').forEach(el => { el.hidden = !CONVOCATORIA.contacto; });
+  initLangSwitch();
+  const actualizarTitulo = () => { document.title = `Nuevas Miradas — ${t('rules_title')}`; };
+  actualizarTitulo();
+  document.addEventListener('langchange', actualizarTitulo);
+</script>
+</body>
+</html>

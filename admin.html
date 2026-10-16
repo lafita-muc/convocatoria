@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Nuevas Miradas — Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;600&family=Oswald:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html"><span class="wordmark">LAFITA</span><span class="tag">Nuevas Miradas</span></a>
+    <div class="header-right">
+      <div class="lang-switch"></div>
+      <div class="header-dates"><span data-i18n="admin_sub"></span><small data-i18n="header_sub"></small></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <a class="back-link" href="index.html" data-i18n="back_public"></a>
+  <div id="aviso-config" class="alert info hidden" data-i18n="notconf"></div>
+
+  <div id="login-box" class="admin-login">
+    <h2 data-i18n="login_title"></h2>
+    <form id="login-form">
+      <label for="login-email" data-i18n="lbl_login_email"></label>
+      <input type="email" id="login-email" autocomplete="username" required>
+      <label for="login-pass" data-i18n="lbl_pass"></label>
+      <input type="password" id="login-pass" autocomplete="current-password" required>
+      <div class="form-actions" style="border:0;padding-top:22px">
+        <button class="btn" id="btn-login" data-i18n="btn_login"></button>
+      </div>
+    </form>
+    <div id="login-error"></div>
+  </div>
+
+  <div id="panel" class="hidden">
+    <div class="admin-toolbar" style="justify-content:space-between">
+      <h2 class="panel-title" data-i18n="panel_title"></h2>
+      <span><span id="usuario-actual" class="user-line"></span> <button class="btn secondary small" id="btn-logout" data-i18n="btn_logout"></button></span>
+    </div>
+
+    <div class="stat-row" id="stats"></div>
+
+    <div class="admin-toolbar">
+      <input type="search" id="buscar" data-i18n-ph="search_ph" aria-label="Search">
+      <select id="filtro-estado" aria-label="Status"></select>
+      <select id="filtro-cat" aria-label="Category"></select>
+      <button class="btn secondary" id="btn-csv" data-i18n="btn_csv"></button>
+    </div>
+    <div id="accion-msg"></div>
+
+    <div class="table-scroll">
+      <table class="envios">
+        <thead>
+          <tr>
+            <th data-i18n="th_code"></th>
+            <th data-i18n="th_status"></th>
+            <th data-i18n="th_film"></th>
+            <th data-i18n="th_dir"></th>
+            <th data-i18n="th_cat"></th>
+            <th data-i18n="th_city"></th>
+            <th data-i18n="th_sent"></th>
+            <th data-i18n="th_screener"></th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">
+    <span data-i18n="footer_name"></span>
+    <span><a href="https://lafita.de">lafita.de</a></span>
+  </div>
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="config.js"></script>
+<script src="firebase-config.js"></script>
+<script src="i18n.js"></script>
+<script src="campos.js"></script>
+<script>
+const ESTADOS = ['nueva', 'revision', 'preseleccion', 'seleccionada', 'descartada'];
+const CATS = ['corto', 'medio', 'largo'];
+const $ = id => document.getElementById(id);
+let envios = [];
+let abierto = null;       // id de la inscripción desplegada
+let cancelarEscucha = null;
+
+function esc(s) { return String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function fecha(ts) {
+  if (!ts || !ts.toDate) return '';
+  return ts.toDate().toLocaleString(LOCALES[LANG], { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function enlace(url, texto) {
+  return /^https?:\/\//i.test(url || '') ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(texto || url)}</a>` : esc(url);
+}
+function mensaje(tipo, texto) {
+  $('accion-msg').innerHTML = `<div class="alert ${tipo}"></div>`;
+  $('accion-msg').firstChild.textContent = texto;
+  setTimeout(() => { $('accion-msg').innerHTML = ''; }, 4000);
+}
+
+// ---------- Filtros y estadísticas ----------
+function pintarFiltros() {
+  const fe = $('filtro-estado'), fc = $('filtro-cat');
+  const ve = fe.value, vc = fc.value;
+  fe.innerHTML = `<option value="">${t('all_status')}</option>` + ESTADOS.map(e => `<option value="${e}">${t('st_' + e)}</option>`).join('');
+  fc.innerHTML = `<option value="">${t('all_cats')}</option>` + CATS.map(c => `<option value="${c}">${t('cat_s_' + c)}</option>`).join('');
+  fe.value = ve; fc.value = vc;
+}
+
+function filtrados() {
+  const q = $('buscar').value.trim().toLowerCase();
+  const fe = $('filtro-estado').value, fc = $('filtro-cat').value;
+  return envios.filter(d =>
+    (!fe || d.estado === fe) && (!fc || d.categoria === fc) &&
+    (!q || [d.codigo, d.titulo, d.tituloEn, d.dirNombre, d.dirCiudad, d.dirEmail, d.paises, d.productora]
+      .some(x => String(x || '').toLowerCase().includes(q))));
+}
+
+function pintarStats() {
+  const n = e => envios.filter(d => d.estado === e).length;
+  $('stats').innerHTML =
+    `<div class="stat-box"><div class="num">${envios.length}</div><div class="label">${t('total')}</div></div>` +
+    ESTADOS.map(e => `<div class="stat-box st-${e}"><div class="num">${n(e)}</div><div class="label">${t('st_' + e)}</div></div>`).join('');
+}
+
+// ---------- Tabla ----------
+function detalle(d) {
+  const filas = CAMPOS.filter(c => c.tipo !== 'check').map(c => {
+    const v = d[c.k];
+    let html = c.tipo === 'url' ? enlace(v) : esc(textoValor(c, v));
+    if (!html) return '';
+    const lbl = t('lbl_' + c.k).replace(/<[^>]+>/g, '');
+    return `<dt>${esc(lbl)}</dt><dd>${html}</dd>`;
+  }).join('');
+  return `<tr class="detail"><td colspan="8">
+    <dl>${filas}<dt>DE · ES · EN · PT</dt><dd>${esc((d.idioma || '').toUpperCase())}</dd></dl>
+    <label for="notas-${d.id}">${t('notas')}</label>
+    <textarea id="notas-${d.id}">${esc(d.notas || '')}</textarea>
+    <div class="row-actions">
+      <button class="btn small" data-act="notas" data-id="${d.id}">${t('btn_save_notes')}</button>
+      <button class="btn small danger" data-act="borrar" data-id="${d.id}">${t('btn_delete')}</button>
+    </div></td></tr>`;
+}
+
+function pintarTabla() {
+  const lista = filtrados();
+  if (!lista.length) {
+    $('tabla-body').innerHTML = `<tr><td colspan="8" class="sub">${t('empty')}</td></tr>`;
+    return;
+  }
+  $('tabla-body').innerHTML = lista.map(d => {
+    const sel = `<select class="estado-sel" data-id="${d.id}" aria-label="${t('th_status')}">` +
+      ESTADOS.map(e => `<option value="${e}"${d.estado === e ? ' selected' : ''}>${t('st_' + e)}</option>`).join('') + '</select>';
+    const fila = `<tr class="main-row${abierto === d.id ? ' open' : ''}" data-id="${d.id}">
+      <td class="codigo">${esc(d.codigo)}</td>
+      <td>${sel}</td>
+      <td><div class="film-t">${esc(d.titulo)}</div><div class="sub">${esc(d.tituloEn || '')}</div></td>
+      <td>${esc(d.dirNombre)}<div class="sub">${esc(d.dirEmail)}</div></td>
+      <td>${d.categoria ? t('cat_s_' + d.categoria) : ''}<div class="sub">${esc(d.duracion)}′ · ${esc(textoValor(CAMPOS.find(c => c.k === 'tipo'), d.tipo))}</div></td>
+      <td>${esc(d.dirCiudad)}</td>
+      <td class="sub">${fecha(d.creadoEn)}</td>
+      <td>${enlace(d.screener, t('watch'))}${d.screenerPass ? `<div class="sub">🔑 ${esc(d.screenerPass)}</div>` : ''}</td>
+    </tr>`;
+    return fila + (abierto === d.id ? detalle(d) : '');
+  }).join('');
+}
+
+function pintar() { pintarFiltros(); pintarStats(); pintarTabla(); }
+
+$('tabla-body').addEventListener('click', async e => {
+  if (e.target.closest('select, a, textarea')) return;
+  const btn = e.target.closest('button[data-act]');
+  if (btn) {
+    const id = btn.dataset.id;
+    try {
+      if (btn.dataset.act === 'notas') {
+        await db.collection('envios').doc(id).update({ notas: $('notas-' + id).value });
+        mensaje('success', t('saved'));
+      } else if (btn.dataset.act === 'borrar' && confirm(t('confirm_delete'))) {
+        await db.collection('envios').doc(id).delete();
+        abierto = null;
+      }
+    } catch (err) { mensaje('error', err.message); }
+    return;
+  }
+  const fila = e.target.closest('tr.main-row');
+  if (fila) { abierto = abierto === fila.dataset.id ? null : fila.dataset.id; pintarTabla(); }
+});
+
+$('tabla-body').addEventListener('change', async e => {
+  const sel = e.target.closest('select.estado-sel');
+  if (!sel) return;
+  try { await db.collection('envios').doc(sel.dataset.id).update({ estado: sel.value }); }
+  catch (err) { mensaje('error', err.message); }
+});
+
+['buscar', 'filtro-estado', 'filtro-cat'].forEach(id => $(id).addEventListener('input', pintarTabla));
+
+// ---------- CSV (se abre en Excel) ----------
+$('btn-csv').addEventListener('click', () => {
+  const cols = [
+    ['codigo', d => d.codigo], ['estado', d => t('st_' + d.estado)], ['categoria', d => d.categoria ? t('cat_s_' + d.categoria) : ''],
+    ...CAMPOS.filter(c => c.tipo !== 'check').map(c => [c.k, d => textoValor(c, d[c.k])]),
+    ['idioma', d => d.idioma], ['creadoEn', d => fecha(d.creadoEn)], ['notas', d => d.notas || '']
+  ];
+  const celda = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const csv = [cols.map(c => celda(c[0])).join(';'), ...filtrados().map(d => cols.map(c => celda(c[1](d))).join(';'))].join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `nuevas-miradas-${CONVOCATORIA.edicion}-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// ---------- Login ----------
+initLangSwitch();
+document.addEventListener('langchange', () => { if (!$('panel').classList.contains('hidden')) pintar(); });
+
+if (!FIREBASE_LISTO || !auth) {
+  $('aviso-config').classList.remove('hidden');
+  $('btn-login').disabled = true;
+} else {
+  $('login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    $('login-error').innerHTML = '';
+    try { await auth.signInWithEmailAndPassword($('login-email').value.trim(), $('login-pass').value); }
+    catch (err) {
+      $('login-error').innerHTML = '<div class="alert error"></div>';
+      $('login-error').firstChild.textContent = t('login_err', { msg: err.message });
+    }
+  });
+  $('btn-logout').addEventListener('click', () => auth.signOut());
+
+  auth.onAuthStateChanged(user => {
+    $('login-box').classList.toggle('hidden', !!user);
+    $('panel').classList.toggle('hidden', !user);
+    if (cancelarEscucha) { cancelarEscucha(); cancelarEscucha = null; }
+    if (!user) return;
+    $('usuario-actual').textContent = user.email;
+    cancelarEscucha = db.collection('envios')
+      .where('edicion', '==', CONVOCATORIA.edicion)
+      .onSnapshot(snap => {
+        envios = snap.docs.map(doc => Object.assign({ id: doc.id }, doc.data()))
+          .sort((a, b) => ((b.creadoEn && b.creadoEn.seconds) || 0) - ((a.creadoEn && a.creadoEn.seconds) || 0));
+        pintar();
+      }, err => mensaje('error', err.message));
+  });
+}
+</script>
+</body>
+</html>

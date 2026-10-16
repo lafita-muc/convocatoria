@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuevas Miradas — LAFITA Call for Entries</title>
+<meta name="description" content="Nuevas Miradas: neue Sektion der Lateinamerikanischen Filmtage München für junge Filmschaffende aus Deutschland. Kostenlose Einreichung.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;600&family=Oswald:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html"><span class="wordmark">LAFITA</span><span class="tag" data-i18n="tag"></span></a>
+    <div class="header-right">
+      <div class="lang-switch"></div>
+      <div class="header-dates"><span data-i18n="header_month"></span><small data-i18n="header_sub"></small></div>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="inner">
+    <p class="kicker" data-i18n="kicker"></p>
+    <h1 data-i18n="hero_title"></h1>
+    <p class="sub" data-i18n="hero_sub"></p>
+    <p class="lead" data-i18n="hero_lead"></p>
+    <div class="hero-actions">
+      <a class="btn big" href="#form" id="cta" data-i18n="hero_cta"></a>
+      <a class="btn big secondary" href="bases.html" data-i18n="hero_rules"></a>
+    </div>
+  </div>
+</section>
+
+<div class="facts">
+  <div class="fact"><div class="label" data-i18n="fact_deadline"></div><div class="val" data-i18n="fact_deadline_val"></div></div>
+  <div class="fact"><div class="label" data-i18n="fact_festival"></div><div class="val" data-i18n="fact_festival_val"></div></div>
+  <div class="fact"><div class="label" data-i18n="fact_fee"></div><div class="val" data-i18n="fact_fee_val"></div></div>
+  <div class="fact"><div class="label" data-i18n="fact_notify"></div><div class="val" data-i18n="fact_notify_val"></div></div>
+</div>
+
+<main>
+  <div class="info-grid info">
+    <section>
+      <h2 class="section-h" data-i18n="who_title"></h2>
+      <ul class="who">
+        <li data-i18n="who_1"></li>
+        <li data-i18n="who_2"></li>
+        <li data-i18n="who_3"></li>
+        <li data-i18n="who_4"></li>
+      </ul>
+    </section>
+    <section>
+      <h2 class="section-h" data-i18n="how_title"></h2>
+      <ol class="steps">
+        <li><a href="bases.html" data-i18n="how_1"></a></li>
+        <li data-i18n="how_2"></li>
+        <li data-i18n="how_3"></li>
+        <li data-i18n="how_4"></li>
+      </ol>
+      <p class="hint contact" data-i18n="contact_line"></p>
+    </section>
+  </div>
+
+  <!-- Convocatoria cerrada -->
+  <div id="cerrada" class="hidden">
+    <h2 class="section-h" data-i18n="closed_title"></h2>
+    <p data-i18n="closed_text"></p>
+  </div>
+
+  <!-- Formulario -->
+  <form id="form" novalidate>
+    <div class="form-head">
+      <h2 class="section-h" style="flex:1 1 100%" data-i18n="form_title"></h2>
+      <p data-i18n="form_intro"></p>
+    </div>
+    <div id="aviso-config" class="alert info hidden" data-i18n="notconf"></div>
+    <div id="aviso-borrador" class="alert success hidden"><span data-i18n="draft_restored"></span><button type="button" class="link-btn" id="btn-borrar" data-i18n="draft_clear"></button></div>
+
+    <div id="bloques"></div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn big" id="btn-enviar" data-i18n="btn_send"></button>
+      <div id="resumen" class="alert error hidden" role="alert"></div>
+    </div>
+  </form>
+
+  <!-- Confirmación -->
+  <section id="hecho" class="done hidden" tabindex="-1">
+    <h2 data-i18n="ok_title"></h2>
+    <p id="ok-text"></p>
+    <div class="code-box">
+      <div class="label" data-i18n="ok_code"></div>
+      <div class="code" id="ok-code"></div>
+    </div>
+    <p class="small" data-i18n="ok_note"></p>
+    <div class="done-actions">
+      <button type="button" class="btn" onclick="window.print()" data-i18n="ok_print"></button>
+      <button type="button" class="btn secondary" id="btn-otra" data-i18n="ok_new"></button>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">
+    <span data-i18n="footer_name"></span>
+    <span><a href="https://lafita.de">lafita.de</a></span>
+  </div>
+</footer>
+
+<!-- Firebase SDK (versión "compat", sin build tools) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script src="firebase-config.js"></script>
+<script src="i18n.js"></script>
+<script src="campos.js"></script>
+<script src="formulario.js"></script>
+</body>
+</html>
