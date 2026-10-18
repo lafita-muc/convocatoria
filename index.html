@@ -82,6 +82,9 @@
 
     <div id="bloques"></div>
 
+    <!-- Trampa para robots: las personas no ven este campo -->
+    <div class="hp" aria-hidden="true"><label for="website">Website</label><input type="text" id="website" name="website" tabindex="-1" autocomplete="off"></div>
+
     <div class="form-actions">
       <button type="submit" class="btn big" id="btn-enviar" data-i18n="btn_send"></button>
       <div id="resumen" class="alert error hidden" role="alert"></div>
@@ -111,11 +114,7 @@
   </div>
 </footer>
 
-<!-- Firebase SDK (versión "compat", sin build tools) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="config.js"></script>
-<script src="firebase-config.js"></script>
 <script src="i18n.js"></script>
 <script src="campos.js"></script>
 <script src="formulario.js"></script>

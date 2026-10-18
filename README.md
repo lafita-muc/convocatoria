@@ -17,10 +17,10 @@ Primera edición: **noviembre 2027** (LAFITA se celebra cada noviembre). Disponi
   5. **Para terminar:** si puede venir a Múnich en noviembre, cómo se enteró, y las tres casillas obligatorias (derechos, bases, datos).
 - **Comprobación** de cada campo con mensajes en el idioma elegido, contador de caracteres y resumen de errores.
 - **Borrador automático:** lo que se escribe se guarda en el navegador; si la persona cierra la página, al volver sigue ahí.
-- **Confirmación** con un **número de inscripción** (ej. `NM27-K7QXP`) que se puede imprimir. Para inscribir otra película se mantienen los datos de la dirección.
-- **Cierre automático:** después de la fecha límite el formulario se cierra solo (en la web y en la base de datos).
+- **Confirmación** con un **número de inscripción** (ej. `NM27-K7QXP`) en pantalla y **por correo** (en el idioma de la persona). Para inscribir otra película se mantienen los datos de la dirección.
+- **Cierre automático:** después de la fecha límite el formulario se cierra solo (en la web y en el script).
 - **Bases** (`bases.html`): 12 puntos en los 4 idiomas.
-- **Panel del comité** (`admin.html`, con usuario y contraseña): lista de inscripciones en directo, búsqueda, filtros por estado y categoría, **estado** de cada película (Nueva → En visionado → Preselección → Seleccionada / Descartada), notas internas, todos los datos, enlace directo al visionado y **exportar a CSV / Excel**.
+- **Todo llega a una hoja de Google** en el Drive compartido de LAFITA (`LAFITA / Nuevas Miradas / Nuevas Miradas 2027 – Inscripciones`): una fila por película, con columna **Estado** desplegable (Nueva → En visionado → Preselección → Seleccionada / Descartada, con colores), **Notas del comité** y el **enlace de visionado**. El comité trabaja directamente en la hoja (filtrar, ordenar, comentar, descargar a Excel). Opcional: un correo al equipo por cada inscripción nueva.
 
 ## Bases propuestas (resumen)
 
@@ -37,45 +37,47 @@ Primera edición: **noviembre 2027** (LAFITA se celebra cada noviembre). Disponi
 
 ## Poner la web en marcha
 
-1. **GitHub Pages:** Settings → Pages → *Deploy from a branch* → `main` / `(root)`. La web queda en `https://lafita-muc.github.io/convocatoria/`.
-2. **Firebase** (la base de datos donde llegan las inscripciones). Se recomienda un proyecto **nuevo**, separado del de Tickets, para que las reglas de uno no pisen las del otro:
-   1. [console.firebase.google.com](https://console.firebase.google.com) → *Agregar proyecto* (plan gratuito Spark).
-   2. Registrar una app web (`</>`) y copiar los valores en `firebase-config.js`.
-   3. *Firestore Database* → crear (modo producción, región `europe-west3` Frankfurt).
-   4. *Authentication* → habilitar *Correo/contraseña* y crear un usuario por persona del comité.
-   5. *Firestore → Reglas*: pegar `firestore.rules` y publicar.
-3. Poner el correo de contacto en `config.js` (`contacto`). Si está vacío, no se muestra.
+Las películas no se guardan: la gente deja un **enlace** (Vimeo, etc.). Por eso basta con una hoja de Google como "base de datos", conectada con un pequeño script de Google (Apps Script). Gratis y sin servidores.
 
-Mientras `firebase-config.js` esté vacío, el formulario se puede probar, pero avisa de que no guarda nada.
+1. **GitHub Pages:** Settings → Pages → *Deploy from a branch* → `main` / `(root)`. La web queda en `https://lafita-muc.github.io/convocatoria/`.
+2. **Conectar la hoja** (10 minutos, una sola vez):
+   1. Abrir la hoja **Nuevas Miradas 2027 – Inscripciones** (Drive → LAFITA → Nuevas Miradas) → menú **Extensiones → Apps Script**.
+   2. Borrar lo que haya en `Code.gs`, pegar el contenido de [`apps-script/Code.gs`](apps-script/Code.gs) y guardar (💾).
+   3. Arriba, elegir la función **configurar** y pulsar **▶ Ejecutar**. Google pide permisos ("Google no ha verificado esta app" → *Configuración avanzada* → *Ir a…* → *Permitir*). Es normal: el script es vuestro.
+   4. **Implementar → Nueva implementación** → tipo **Aplicación web** → *Ejecutar como:* **Yo** · *Quién tiene acceso:* **Cualquier usuario** → Implementar.
+   5. Copiar la **URL de la aplicación web** (termina en `/exec`) y pegarla en `config.js` → `urlEnvio`.
+3. Poner el correo de contacto en `config.js` (`contacto`). Si está vacío, no se muestra.
+4. Opcional, en `apps-script/Code.gs` → `AJUSTES`: `avisarA` (correo del equipo para avisar de cada inscripción) y `confirmar` (correo de confirmación a quien inscribe, activado). Después de cambiar el script: *Implementar → Gestionar implementaciones → ✏️ → Versión: Nueva versión* (la URL no cambia).
+
+Mientras `urlEnvio` esté vacío, el formulario se puede probar, pero avisa de que no guarda nada.
+
+**Importante:** no cambiar el orden de las columnas de la hoja ni la fila 1 (el script escribe por posición). Se pueden añadir columnas propias **a la derecha** del todo. Los correos salen de la cuenta de Google de quien implementa el script (límite: 100 al día con una cuenta gratuita).
 
 ## Cada año
 
 | Qué | Dónde |
 |---|---|
 | Año, fecha límite, respuesta, copia, "terminadas después de", máx. películas, contacto | `config.js` |
-| Fecha de cierre y año en la base de datos | `firestore.rules` (`timestamp.date(…)`, `d.edicion == …`, `num(d, 'anio', …)`, `numOpt(d, 'dirNacimiento', …)`, `num(d, 'dirDesde', …)`) → volver a publicar las reglas |
+| Año y fecha límite del lado de Google | `apps-script/Code.gs` → `AJUSTES` (y nueva versión de la implementación) |
+| Hoja nueva para el año nuevo | Hacer una copia de la hoja (el script se copia con ella), implementarla y poner la nueva URL en `config.js` |
 | Textos y bases en los 4 idiomas | `i18n.js` |
-| Preguntas del formulario | `campos.js` (y las listas de `firestore.rules`) |
+| Preguntas del formulario | `campos.js` (y `COLUMNAS` / `OBLIGATORIOS` en `apps-script/Code.gs` + la cabecera de la hoja) |
 | Colores y diseño | `style.css` |
-
-Las inscripciones de cada año se guardan con su `edicion`; el panel muestra solo las del año de `config.js`.
 
 ## Archivos
 
 | Archivo | Para qué sirve |
 |---|---|
 | `index.html` | Portada + formulario + confirmación |
-| `formulario.js` | Construye y comprueba el formulario, guarda el borrador, envía |
-| `campos.js` | Lista de preguntas (la usan el formulario, el panel y el CSV) |
+| `formulario.js` | Construye y comprueba el formulario, guarda el borrador, envía a la hoja |
+| `campos.js` | Lista de preguntas del formulario |
 | `bases.html` | Bases de participación |
-| `admin.html` | Panel del comité de selección |
 | `config.js` | Fechas y datos de la edición |
 | `i18n.js` | Textos (DE · ES · EN · PT) |
 | `style.css` | Diseño (mismo estilo que LAFITA Tickets) |
-| `firebase-config.js` | Conexión con la base de datos |
-| `firestore.rules` | Reglas de seguridad: el público solo puede inscribir; el comité lo ve todo |
+| `apps-script/Code.gs` | Script de Google que recibe las inscripciones, las guarda en la hoja y manda los correos |
 
 ## Notas
 
-- No se envía un correo automático de confirmación (haría falta un servidor). La persona ve e imprime su número de inscripción; el comité escribe a todas las personas antes de la fecha de respuesta.
+- La hoja del Drive es privada: solo la ve quien tiene acceso a la carpeta de LAFITA. La web solo puede **añadir** filas (no leerlas).
 - Las bases son un borrador: conviene que alguien del equipo las revise (sobre todo derechos y protección de datos) antes de publicar.

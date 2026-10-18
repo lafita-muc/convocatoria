@@ -4,7 +4,8 @@
 // - Construye el formulario a partir de campos.js
 // - Comprueba cada campo (mensajes en el idioma elegido)
 // - Guarda un borrador en este navegador mientras se rellena
-// - Envía la inscripción a Firestore (colección "envios")
+// - Envía la inscripción al script de Google (config.js → urlEnvio),
+//   que la guarda en la hoja del Drive de LAFITA
 // ============================================================
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -184,12 +185,6 @@ function borrarBorrador() {
 }
 
 // ---------- Enviar ----------
-function generarCodigo() {
-  const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // sin 0/O ni 1/I, para que se lea bien
-  const r = crypto.getRandomValues(new Uint32Array(5));
-  return 'NM' + String(CONVOCATORIA.edicion).slice(2) + '-' + [...r].map(n => abc[n % abc.length]).join('');
-}
-
 function datosParaGuardar() {
   const d = {};
   CAMPOS.forEach(c => {
@@ -198,7 +193,19 @@ function datosParaGuardar() {
     d[c.k] = v;
   });
   d.categoria = categoriaDe(d.duracion);
+  d.idioma = LANG;
+  d.website = $('website').value;   // trampa para robots (vacío para las personas)
   return d;
+}
+
+// El script de Google responde { ok: true, codigo } o { ok: false, error }.
+// Se envía como texto plano para que el navegador no pida permiso previo (CORS).
+async function enviar(datos) {
+  const res = await fetch(CONVOCATORIA.urlEnvio, { method: 'POST', body: JSON.stringify(datos), redirect: 'follow' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const r = await res.json();
+  if (!r.ok) throw new Error(r.error === 'closed' ? t('err_closed') : r.error || 'error');
+  return r.codigo;
 }
 
 form.addEventListener('submit', async (e) => {
@@ -215,21 +222,14 @@ form.addEventListener('submit', async (e) => {
   }
   const r = $('resumen');
   if (estaCerrada()) { r.textContent = t('err_closed'); r.classList.remove('hidden'); return; }
-  if (!FIREBASE_LISTO || !db) { r.textContent = t('notconf'); r.classList.remove('hidden'); return; }
+  if (!CONVOCATORIA.urlEnvio) { r.textContent = t('notconf'); r.classList.remove('hidden'); return; }
 
   const btn = $('btn-enviar');
   btn.disabled = true;
   btn.textContent = t('sending');
   const datos = datosParaGuardar();
-  const codigo = generarCodigo();
   try {
-    await db.collection('envios').add(Object.assign(datos, {
-      codigo,
-      edicion: CONVOCATORIA.edicion,
-      estado: 'nueva',
-      idioma: LANG,
-      creadoEn: firebase.firestore.FieldValue.serverTimestamp()
-    }));
+    const codigo = await enviar(datos);
     borrarBorrador();
     mostrarHecho({ codigo, titulo: datos.titulo, email: datos.dirEmail });
   } catch (err) {
@@ -290,7 +290,7 @@ if (estaCerrada()) {
   $('cerrada').classList.remove('hidden');
   $('cta').classList.add('hidden');
 } else {
-  if (!FIREBASE_LISTO) $('aviso-config').classList.remove('hidden');
+  if (!CONVOCATORIA.urlEnvio) $('aviso-config').classList.remove('hidden');
   cargarBorrador();
 }
 

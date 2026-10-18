@@ -1,8 +1,7 @@
 // ============================================================
 // NUEVAS MIRADAS — campos del formulario
 // ============================================================
-// El formulario (index.html), la comprobación y el panel del equipo
-// (admin.html, CSV) se construyen a partir de esta lista.
+// El formulario (index.html) y la comprobación se construyen a partir de esta lista.
 //
 // Cada campo:
 //   k      nombre del dato (en la base de datos y en el CSV)
@@ -16,8 +15,8 @@
 //   hint   tiene ayuda debajo (texto en i18n: 'hint_' + k)
 //   lbl    clave del texto de la etiqueta (por defecto 'lbl_' + k)
 //
-// Si añades, quitas o cambias un campo, actualiza también la lista de
-// campos en firestore.rules (función valida) y los textos en i18n.js.
+// Si añades, quitas o cambias un campo, actualiza también COLUMNAS (y
+// OBLIGATORIOS) en apps-script/Code.gs, la cabecera de la hoja y los textos en i18n.js.
 // ============================================================
 
 const ANIO_MIN = parseInt(CONVOCATORIA.terminadoDesde.slice(0, 4), 10);
@@ -102,11 +101,3 @@ function categoriaDe(min) {
   return min <= 30 ? 'corto' : min <= 60 ? 'medio' : 'largo';
 }
 
-// Texto que se ve de un valor guardado (para el panel y el CSV)
-function textoValor(c, v) {
-  if (v === undefined || v === null || v === '') return '';
-  if (c.tipo === 'check') return v ? '✓' : '';
-  if (c.tipo === 'checks') return (v || []).map(o => t(c.pre + o)).join(', ');
-  if (c.opts) return t(c.pre + v);
-  return String(v);
-}

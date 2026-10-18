@@ -2,9 +2,8 @@
 // NUEVAS MIRADAS — ajustes de la convocatoria
 // ============================================================
 // Cada año (la sección se celebra cada noviembre) basta con cambiar
-// estos datos. Si cambias "cierre", cambia también la fecha en
-// firestore.rules (allow create: if request.time < ...) y vuelve a
-// publicar las reglas en Firebase.
+// estos datos. Si cambias "cierre" o "edicion", cambia también AJUSTES
+// en apps-script/Code.gs (el script de la hoja de Google).
 // ============================================================
 
 const CONVOCATORIA = {
@@ -14,6 +13,11 @@ const CONVOCATORIA = {
   terminadoDesde: '2026-01-01',// las películas tienen que estar terminadas después de esta fecha
   copiaHasta: '2027-11-01',    // fecha límite para la copia de proyección (películas seleccionadas)
   maxPorPersona: 2,            // películas como máximo por persona (dirección)
-  contacto: ''                 // correo de contacto de la sección, p. ej. 'nuevasmiradas@lafita.de'
+  contacto: '',                // correo de contacto de la sección, p. ej. 'nuevasmiradas@lafita.de'
                                // (si está vacío, no se muestra)
+
+  // Dirección del script de Google (Apps Script) que guarda las inscripciones
+  // en la hoja "Nuevas Miradas 2027 – Inscripciones" del Drive de LAFITA.
+  // Termina en /exec. Mientras esté vacío, el formulario se puede probar pero no guarda nada.
+  urlEnvio: ''
 };
