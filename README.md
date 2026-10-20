@@ -20,7 +20,7 @@ Primera edición: **noviembre 2027** (LAFITA se celebra cada noviembre). Disponi
 - **Confirmación** con un **número de inscripción** (ej. `NM27-K7QXP`) en pantalla y **por correo** (en el idioma de la persona). Para inscribir otra película se mantienen los datos de la dirección.
 - **Cierre automático:** después de la fecha límite el formulario se cierra solo (en la web y en el script).
 - **Bases** (`bases.html`): 12 puntos en los 4 idiomas.
-- **Todo llega a una hoja de Google** en el Drive compartido de LAFITA (`LAFITA / Nuevas Miradas / Nuevas Miradas 2027 – Inscripciones`): una fila por película, con columna **Estado** desplegable (Nueva → En visionado → Preselección → Seleccionada / Descartada, con colores), **Notas del comité** y el **enlace de visionado**. El comité trabaja directamente en la hoja (filtrar, ordenar, comentar, descargar a Excel). Opcional: un correo al equipo por cada inscripción nueva.
+- **Todo llega a una hoja de Google** en el Drive compartido de LAFITA (`LAFITA / Convocatoria / Nuevas Miradas 2027 – Inscripciones`): una fila por película, con columna **Estado** desplegable (Nueva → En visionado → Preselección → Seleccionada / Descartada, con colores), **Notas del comité** y el **enlace de visionado**. El comité trabaja directamente en la hoja (filtrar, ordenar, comentar, descargar a Excel). Opcional: un correo al equipo por cada inscripción nueva.
 
 ## Bases propuestas (resumen)
 
@@ -41,7 +41,7 @@ Las películas no se guardan: la gente deja un **enlace** (Vimeo, etc.). Por eso
 
 1. **GitHub Pages:** Settings → Pages → *Deploy from a branch* → `main` / `(root)`. La web queda en `https://lafita-muc.github.io/convocatoria/`.
 2. **Conectar la hoja** (10 minutos, una sola vez):
-   1. Abrir la hoja **Nuevas Miradas 2027 – Inscripciones** (Drive → LAFITA → Nuevas Miradas) → menú **Extensiones → Apps Script**.
+   1. Abrir la hoja **Nuevas Miradas 2027 – Inscripciones** (Drive → LAFITA → Convocatoria) → menú **Extensiones → Apps Script**.
    2. Borrar lo que haya en `Code.gs`, pegar el contenido de [`apps-script/Code.gs`](apps-script/Code.gs) y guardar (💾).
    3. Arriba, elegir la función **configurar** y pulsar **▶ Ejecutar**. Google pide permisos ("Google no ha verificado esta app" → *Configuración avanzada* → *Ir a…* → *Permitir*). Es normal: el script es vuestro.
    4. **Implementar → Nueva implementación** → tipo **Aplicación web** → *Ejecutar como:* **Yo** · *Quién tiene acceso:* **Cualquier usuario** → Implementar.
