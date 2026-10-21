@@ -41,7 +41,7 @@ Las películas no se guardan: la gente deja un **enlace** (Vimeo, etc.). Por eso
 
 1. **GitHub Pages:** Settings → Pages → *Deploy from a branch* → `main` / `(root)`. La web queda en `https://lafita-muc.github.io/convocatoria/`.
 2. **Conectar la hoja** (10 minutos, una sola vez):
-   1. Abrir la hoja **Nuevas Miradas 2027 – Inscripciones** (Drive → LAFITA → Convocatoria) → menú **Extensiones → Apps Script**.
+   1. Abrir el editor de Apps Script: desde la hoja **Nuevas Miradas 2027 – Inscripciones** (Drive → LAFITA → Convocatoria) → menú **Extensiones → Apps Script**, o (más fácil desde el **móvil**: Safari en modo *sitio de escritorio*) en [script.google.com](https://script.google.com) → **Nuevo proyecto**. El script encuentra la hoja por su ID (`AJUSTES.hojaId`).
    2. Borrar lo que haya en `Code.gs`, pegar el contenido de [`apps-script/Code.gs`](apps-script/Code.gs) y guardar (💾).
    3. Arriba, elegir la función **configurar** y pulsar **▶ Ejecutar**. Google pide permisos ("Google no ha verificado esta app" → *Configuración avanzada* → *Ir a…* → *Permitir*). Es normal: el script es vuestro.
    4. **Implementar → Nueva implementación** → tipo **Aplicación web** → *Ejecutar como:* **Yo** · *Quién tiene acceso:* **Cualquier usuario** → Implementar.

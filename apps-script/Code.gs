@@ -1,9 +1,12 @@
 /**
  * NUEVAS MIRADAS — recibe las inscripciones del formulario web y las guarda
- * en esta hoja de cálculo (Google Drive compartido de LAFITA).
+ * en la hoja "Nuevas Miradas 2027 – Inscripciones" (Drive de LAFITA → Convocatoria).
  *
- * Instalación (una sola vez, ver README):
- *   1. Abrir la hoja "Nuevas Miradas 2027 – Inscripciones" → Extensiones → Apps Script.
+ * Instalación (una sola vez, ver README). Funciona de dos maneras:
+ *   a) Desde la hoja: Extensiones → Apps Script, o
+ *   b) Como proyecto suelto en https://script.google.com (más fácil desde el móvil):
+ *      la hoja se encuentra por su ID (AJUSTES.hojaId).
+ *   1. Abrir el editor de Apps Script de una de esas dos maneras.
  *   2. Pegar este archivo entero en Code.gs y guardar.
  *   3. Ejecutar la función "configurar" (▶). Google pide permisos: aceptar.
  *   4. Implementar → Nueva implementación → Tipo: Aplicación web
@@ -20,6 +23,7 @@
 var AJUSTES = {
   edicion: 2027,
   cierre: '2027-06-30T23:59:59+02:00',   // fecha y hora límite (hora de Múnich)
+  hojaId: '18epGIz7b4zNb1rlBjg9b787uiBPcnfnHd9QbOhvgRcs',   // ID de la hoja de Google (está en su enlace)
   hoja: 'Inscripciones',                 // nombre de la pestaña
   avisarA: '',                           // correo(s) del equipo para avisar de cada inscripción, separados por coma
   confirmar: true                        // enviar un correo de confirmación a quien inscribe
@@ -187,7 +191,7 @@ function avisar(d) {
         to: AJUSTES.avisarA,
         subject: 'Nueva inscripción ' + d.codigo + ': ' + d.titulo,
         body: d.titulo + ' (' + d.duracion + ' min, ' + d.categoria + ')\n' + d.dirNombre + ' · ' + d.dirCiudad +
-              '\n' + d.screener + '\n\n' + SpreadsheetApp.getActiveSpreadsheet().getUrl(),
+              '\n' + d.screener + '\n\n' + libro().getUrl(),
         name: 'LAFITA · Nuevas Miradas'
       });
     }
@@ -199,8 +203,13 @@ function avisar(d) {
 // ------------------------------------------------------------
 // Preparar la hoja (ejecutar una vez a mano: ▶ configurar)
 // ------------------------------------------------------------
+// La hoja: la del propio script si está dentro de la hoja, si no la de AJUSTES.hojaId
+function libro() {
+  return SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById(AJUSTES.hojaId);
+}
+
 function obtenerHoja() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = libro();
   var hoja = ss.getSheetByName(AJUSTES.hoja) || ss.getSheets()[0];
   if (hoja.getName() !== AJUSTES.hoja) hoja.setName(AJUSTES.hoja);
   if (hoja.getLastRow() === 0 || hoja.getRange(1, 1).getValue() !== COLUMNAS[0][1]) {
@@ -239,5 +248,5 @@ function configurar() {
   var p = cab.protect().setDescription('Cabecera – no cambiar el orden de las columnas');
   p.setWarningOnly(true);
 
-  SpreadsheetApp.getActiveSpreadsheet().toast('Hoja lista. Ahora: Implementar → Nueva implementación → Aplicación web.');
+  console.log('Hoja lista: ' + libro().getUrl() + ' — Ahora: Implementar → Nueva implementación → Aplicación web.');
 }
